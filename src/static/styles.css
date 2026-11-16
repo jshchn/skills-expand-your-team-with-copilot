@@ -89,6 +89,22 @@ header h2 {
   font-size: 1.2rem;
 }
 
+.view-toggle {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.view-toggle button {
+  background-color: transparent;
+  border: 1px solid currentColor;
+}
+
+.view-toggle button[aria-pressed="true"] {
+  background-color: var(--primary-text);
+  color: var(--primary);
+}
+
 main {
   display: flex;
   flex-wrap: wrap;
@@ -135,6 +151,69 @@ section h3 {
 
 .activities-content {
   flex: 1;
+  min-width: 0;
+}
+
+.calendar-scroll {
+  overflow-x: auto;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: 55px repeat(7, minmax(105px, 1fr));
+  min-width: 790px;
+}
+
+.calendar-heading {
+  padding: 8px 2px;
+  text-align: center;
+  font-weight: bold;
+  border-bottom: 1px solid var(--border);
+}
+
+.calendar-times div {
+  height: 60px;
+  padding-top: 2px;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.calendar-day {
+  position: relative;
+  border-left: 1px solid var(--border);
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--border-light) 0,
+    var(--border-light) 1px,
+    transparent 1px,
+    transparent 60px
+  );
+}
+
+.calendar-event {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow: hidden;
+  padding: 2px 3px;
+  border: 1px solid var(--surface);
+  border-radius: 4px;
+  text-align: left;
+  font-size: 0.7rem;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.calendar-event:hover,
+.calendar-event:focus-visible {
+  z-index: 1;
+  outline: 2px solid var(--secondary);
+}
+
+.calendar-unscheduled {
+  margin-top: 10px;
+  color: var(--text-secondary);
 }
 
 /* Desktop layout */
