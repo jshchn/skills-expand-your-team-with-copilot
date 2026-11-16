@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("activity-search");
   const searchButton = document.getElementById("search-button");
   const categoryFilters = document.querySelectorAll(".category-filter");
+  const groupBySelect = document.getElementById("group-by");
   const dayFilters = document.querySelectorAll(".day-filter");
   const timeFilters = document.querySelectorAll(".time-filter");
 
@@ -56,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // State for activities and filters
   let allActivities = {};
   let currentFilter = "all";
+  let currentGroupBy = "";
   let searchQuery = "";
   let currentDay = "";
   let currentTimeRange = "";
@@ -489,14 +491,84 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Display filtered activities
+    // Display filtered activities, grouped when requested
+    if (!currentGroupBy) {
+      Object.entries(filteredActivities).forEach(([name, details]) => {
+        renderActivityCard(name, details);
+      });
+      return;
+    }
+
+    const groups = new Map();
     Object.entries(filteredActivities).forEach(([name, details]) => {
-      renderActivityCard(name, details);
+      let groupNames;
+      if (currentGroupBy === "category") {
+        groupNames = [
+          activityTypes[getActivityType(name, details.description)].label,
+        ];
+      } else if (currentDay) {
+        groupNames = [currentDay];
+      } else {
+        groupNames = details.schedule_details?.days?.length
+          ? details.schedule_details.days.filter(
+              (day) =>
+                currentTimeRange !== "weekend" ||
+                timeRanges.weekend.days.includes(day)
+            )
+          : ["Unscheduled"];
+      }
+
+      groupNames.forEach((groupName) => {
+        if (!groups.has(groupName)) {
+          groups.set(groupName, []);
+        }
+        groups.get(groupName).push([name, details]);
+      });
+    });
+
+    const dayOrder = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
+    const groupNames = [...groups.keys()].sort((first, second) => {
+      if (currentGroupBy === "day") {
+        const firstIndex = dayOrder.indexOf(first);
+        const secondIndex = dayOrder.indexOf(second);
+        if (firstIndex !== -1 || secondIndex !== -1) {
+          return (
+            (firstIndex === -1 ? dayOrder.length : firstIndex) -
+            (secondIndex === -1 ? dayOrder.length : secondIndex)
+          );
+        }
+      }
+      return first.localeCompare(second);
+    });
+
+    groupNames.forEach((groupName) => {
+      const group = document.createElement("div");
+      group.className = "activity-group";
+
+      const heading = document.createElement("h3");
+      heading.textContent = groupName;
+      group.appendChild(heading);
+
+      const groupActivities = document.createElement("div");
+      groupActivities.className = "activity-group-activities";
+      groups.get(groupName).forEach(([name, details]) => {
+        renderActivityCard(name, details, groupActivities);
+      });
+      group.appendChild(groupActivities);
+      activitiesList.appendChild(group);
     });
   }
 
   // Function to render a single activity card
-  function renderActivityCard(name, details) {
+  function renderActivityCard(name, details, container = activitiesList) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
 
@@ -610,7 +682,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    activitiesList.appendChild(activityCard);
+    container.appendChild(activityCard);
   }
 
   // Event listeners for search and filter
@@ -622,6 +694,11 @@ document.addEventListener("DOMContentLoaded", () => {
   searchButton.addEventListener("click", (event) => {
     event.preventDefault();
     searchQuery = searchInput.value;
+    displayFilteredActivities();
+  });
+
+  groupBySelect.addEventListener("change", (event) => {
+    currentGroupBy = event.target.value;
     displayFilteredActivities();
   });
 
