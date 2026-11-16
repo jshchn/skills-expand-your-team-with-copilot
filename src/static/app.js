@@ -432,7 +432,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // The "all levels" option is for activities without a specified difficulty
-      if (currentDifficulty === "all" ? details.difficulty : details.difficulty !== currentDifficulty) {
+      const matchesDifficulty =
+        currentDifficulty === "all"
+          ? !details.difficulty
+          : details.difficulty === currentDifficulty;
+      if (!matchesDifficulty) {
         return;
       }
 
